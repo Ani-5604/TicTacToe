@@ -116,6 +116,27 @@
         .options {
             margin-top: 20px;
         }
+        
+        .marquee {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #204dae;
+            color: white;
+            font-size: 24px;
+            padding: 10px;
+            animation: marqueeAnimation 10s linear infinite;
+        }
+
+        @keyframes marqueeAnimation {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(-100%);
+            }
+        }
 
         .options button {
             padding: 10px 20px;
@@ -166,12 +187,22 @@
     </style>
 </head>
 <body>
-<marquee behavior="scroll" direction="left">
+<marquee behavior="scroll" direction="right" class="marquee">
     Tic-Tac-Toe
 </marquee>
+
 <div class="container">
     <h1>Tic-Tac-Toe</h1>
-    <div id="board" class="board">
+    <div class="options">
+        <button onclick="startGame('friend')">Play with Friend</button>
+        <button onclick="startGame('computer')">Play with Computer</button>
+    </div>
+    <div id="playerNames" class="input-field" style="display: none;">
+        <input type="text" id="player1Name" placeholder="Player 1 Name">
+        <input type="text" id="player2Name" placeholder="Player 2 Name">
+        <button onclick="startTwoPlayerGame()">Start Game</button>
+    </div>
+    <div id="board" class="board" style="display: none;">
         <div class="cell" onclick="handleMove(0)"></div>
         <div class="cell" onclick="handleMove(1)"></div>
         <div class="cell" onclick="handleMove(2)"></div>
@@ -190,30 +221,88 @@
     </div>
     <div id="winnerBox" class="winner-box"></div> <!-- Winner box -->
 </div>
+
 <script>
     let currentPlayer = 'X';
     let player1Name = '';
     let player2Name = '';
     let board = ['', '', '', '', '', '', '', '', ''];
-    const cellColors = ['#FF5733', '#33FF57', '#FFC300', '#900C3F', '#00CED1', '#FF6347', '#8A2BE2', '#3CB371', '#FF4500', '#FF5733', '#55FF57', '#FFC300', '#985D3F', '#00FFD1', '#AF6347', '#6A2BE2', '#3CB371', '#BF4569'];
+    let gameMode = '';
+    let gameOver = false;
+    const cellColors = ['#FF5733', '#33FF57', '#FFC300', '#900C3F', '#00CED1', '#FF6347', '#8A2BE2', '#3CB371', '#FF4500'];
+
+    function startGame(mode) {
+        gameMode = mode;
+        if (mode === 'friend') {
+            document.getElementById('playerNames').style.display = 'block';
+        } else {
+            player1Name = prompt("Enter your name:", "You") || 'You';
+            player2Name = 'Computer';
+            document.getElementById('playerNames').style.display = 'none';
+            document.getElementById('board').style.display = 'grid';
+            renderBoard();
+            if (currentPlayer === 'O') {
+                setTimeout(computerMove, 1000); // Add delay before computer's move
+            }
+        }
+    }
+
+    function startTwoPlayerGame() {
+        player1Name = document.getElementById('player1Name').value || 'Player 1';
+        player2Name = document.getElementById('player2Name').value || 'Player 2';
+        document.getElementById('playerNames').style.display = 'none';
+        document.getElementById('board').style.display = 'grid';
+        renderBoard();
+    }
 
     function handleMove(index) {
-        let winnerName = currentPlayer === 'X' ? player1Name : player2Name;
-        if (board[index] === '' && !checkWinner()) {
+        if (!gameOver && board[index] === '') {
             board[index] = currentPlayer;
             renderBoard();
-            changeCellColor(index); // Change color of the clicked cell
 
             if (checkWinner()) {
-                showWinner(currentPlayer); // Show winner
-                document.getElementById('message').innerText = `${currentPlayer} wins!`;
-                document.getElementById('popup').style.display = 'block'; // Show the popup
+                showWinner(currentPlayer);
+                gameOver = true;
+                return;
             } else if (isBoardFull()) {
                 document.getElementById('message').innerText = 'It\'s a draw!';
-                document.getElementById('popup').style.display = 'block'; // Show the popup
-            } else {
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                gameOver = true;
+                showWinner('');
+                return;
             }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            if (gameMode === 'computer' && currentPlayer === 'O' && !gameOver) {
+                setTimeout(computerMove, 1000); // Add delay before computer's move
+            }
+        }
+    }
+
+    function computerMove() {
+        let emptyCells = [];
+        for (let i = 0; i < board.length; i++) {
+            if (board[i] === '') {
+                emptyCells.push(i);
+            }
+        }
+        if (emptyCells.length > 0) {
+            let randomIndex = Math.floor(Math.random() * emptyCells.length);
+            let moveIndex = emptyCells[randomIndex];
+            board[moveIndex] = 'O';
+            renderBoard();
+
+            if (checkWinner()) {
+                showWinner('O');
+                gameOver = true;
+                return;
+            } else if (isBoardFull()) {
+                document.getElementById('message').innerText = 'It\'s a draw!';
+                gameOver = true;
+                showWinner('');
+                return;
+            }
+
+            currentPlayer = 'X';
         }
     }
 
@@ -225,6 +314,13 @@
         const cells = document.getElementsByClassName('cell');
         for (let i = 0; i < cells.length; i++) {
             cells[i].innerText = board[i];
+            if (board[i] === 'X') {
+                cells[i].style.backgroundColor = 'green';
+            } else if (board[i] === 'O') {
+                cells[i].style.backgroundColor = 'red';
+            } else {
+                cells[i].style.backgroundColor = '#2CBE20';
+            }
         }
     }
 
@@ -255,47 +351,31 @@
     function resetGame() {
         board = ['', '', '', '', '', '', '', '', ''];
         currentPlayer = 'X';
+        gameOver = false;
         document.getElementById('message').innerText = '';
         renderBoard();
-        changeBoardColor(); // Change board color
-        changeCellColors(); // Change cell colors
-        resetWinnerBox(); // Reset winner box
-        document.getElementById('popup').style.display = 'none'; // Hide the popup
-    }
-
-    function changeBoardColor() {
-        const boardElement = document.getElementById('board');
-        boardElement.style.backgroundColor = getRandomColor();
-    }
-
-    function changeCellColor(index) {
-        const cell = document.getElementsByClassName('cell')[index];
-        cell.style.backgroundColor = currentPlayer === 'X' ? 'green' : 'red'; // Change color based on currentPlayer
-    }
-
-    function changeCellColors() {
-        const cells = document.getElementsByClassName('cell');
-        for (let i = 0; i < cells.length; i++) {
-            cells[i].style.backgroundColor = getRandomColor(); // Change color of each cell
-        }
+        document.getElementById('popup').style.display = 'none';
     }
 
     function showWinner(winner) {
         const winnerBox = document.getElementById('winnerBox');
-        winnerBox.innerText = winner === 'X' ? 'X wins!' : 'O wins!';
-        winnerBox.style.backgroundColor = winner === 'X' ? 'green' : 'red';
+        if (winner === 'X') {
+            winnerBox.style.backgroundColor = 'green';
+            winnerBox.innerText = player1Name + ' wins!';
+        } else if (winner === 'O') {
+            if (gameMode === 'computer') {
+                winnerBox.style.backgroundColor = 'red';
+                winnerBox.innerText = 'Computer wins!';
+            } else {
+                winnerBox.style.backgroundColor = 'red';
+                winnerBox.innerText = player2Name + ' wins!';
+            }
+        } else if (winner === '') {
+            winnerBox.style.backgroundColor = 'black';
+            winnerBox.style.color = 'white';
+            winnerBox.innerText = 'DRAW!';
+        }
         winnerBox.style.display = 'block';
-    }
-
-    function resetWinnerBox() {
-        const winnerBox = document.getElementById('winnerBox');
-        winnerBox.innerText = '';
-        winnerBox.style.backgroundColor = '';
-        winnerBox.style.display = 'none';
-    }
-
-    function getRandomColor() {
-        return cellColors[Math.floor(Math.random() * cellColors.length)];
     }
 </script>
 </body>

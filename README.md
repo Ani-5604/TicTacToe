@@ -1,4 +1,3 @@
-# TicTacToe
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -152,128 +151,152 @@
         ul li a:hover {
             color: #8BD049;
         }
+
+        .winner-box {
+            width: 200px;
+            height: 50px;
+            margin: 20px auto;
+            border-radius: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            line-height: 50px;
+        }
     </style>
 </head>
 <body>
 <marquee behavior="scroll" direction="left">
-        Tic-Tac-Toe
-    </marquee>
-    <div class="container">
-        <h1>Tic-Tac-Toe</h1>
-        <div id="board" class="board">
-            <div class="cell" onclick="handleMove(0)"></div>
-            <div class="cell" onclick="handleMove(1)"></div>
-            <div class="cell" onclick="handleMove(2)"></div>
-            <div class="cell" onclick="handleMove(3)"></div>
-            <div class="cell" onclick="handleMove(4)"></div>
-            <div class="cell" onclick="handleMove(5)"></div>
-            <div class="cell" onclick="handleMove(6)"></div>
-            <div class="cell" onclick="handleMove(7)"></div>
-            <div class="cell" onclick="handleMove(8)"></div>
-        </div>
-        <div id="message" class="message"></div>
-        <button id="replayBtn" onclick="resetGame()">Replay</button>
-       
+    Tic-Tac-Toe
+</marquee>
+<div class="container">
+    <h1>Tic-Tac-Toe</h1>
+    <div id="board" class="board">
+        <div class="cell" onclick="handleMove(0)"></div>
+        <div class="cell" onclick="handleMove(1)"></div>
+        <div class="cell" onclick="handleMove(2)"></div>
+        <div class="cell" onclick="handleMove(3)"></div>
+        <div class="cell" onclick="handleMove(4)"></div>
+        <div class="cell" onclick="handleMove(5)"></div>
+        <div class="cell" onclick="handleMove(6)"></div>
+        <div class="cell" onclick="handleMove(7)"></div>
+        <div class="cell" onclick="handleMove(8)"></div>
     </div>
+    <div id="message" class="message"></div>
+    <button id="replayBtn" onclick="resetGame()">Replay</button>
     <div id="popup" class="popup">
         <span class="popup-content">Game Over!</span>
         <button class="closeBtn" onclick="closePopup()">Close</button>
     </div>
-    
-    <script>
-        let currentPlayer = 'X';
-        let player1Name = '';
-        let player2Name = '';
-        let board = ['', '', '', '', '', '', '', '', ''];
-        const cellColors = ['#FF5733', '#33FF57', '#FFC300', '#900C3F', '#00CED1', '#FF6347', '#8A2BE2', '#3CB371', '#FF4500','#FF5733', '#55FF57', '#FFC300', '#985D3F', '#00FFD1', '#AF6347', '#6A2BE2', '#3CB371', '#BF4569'];
+    <div id="winnerBox" class="winner-box"></div> <!-- Winner box -->
+</div>
+<script>
+    let currentPlayer = 'X';
+    let player1Name = '';
+    let player2Name = '';
+    let board = ['', '', '', '', '', '', '', '', ''];
+    const cellColors = ['#FF5733', '#33FF57', '#FFC300', '#900C3F', '#00CED1', '#FF6347', '#8A2BE2', '#3CB371', '#FF4500', '#FF5733', '#55FF57', '#FFC300', '#985D3F', '#00FFD1', '#AF6347', '#6A2BE2', '#3CB371', '#BF4569'];
 
     function handleMove(index) {
-let winnerName = currentPlayer === 'X' ? player1Name : player2Name;
-    if (board[index] === '' && !checkWinner()) {
-        board[index] = currentPlayer;
-        renderBoard();
-        changeCellColor(index); // Change color of the clicked cell
+        let winnerName = currentPlayer === 'X' ? player1Name : player2Name;
+        if (board[index] === '' && !checkWinner()) {
+            board[index] = currentPlayer;
+            renderBoard();
+            changeCellColor(index); // Change color of the clicked cell
 
-        if (checkWinner()) {
-            
-            document.getElementById('message').innerText = `${currentPlayer} wins!`;
-            document.getElementById('popup').style.display = 'block'; // Show the popup
-        } else if (isBoardFull()) {
-            document.getElementById('message').innerText = 'It\'s a draw!';
-            document.getElementById('popup').style.display = 'block'; // Show the popup
-        } else {
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            if (checkWinner()) {
+                showWinner(currentPlayer); // Show winner
+                document.getElementById('message').innerText = `${currentPlayer} wins!`;
+                document.getElementById('popup').style.display = 'block'; // Show the popup
+            } else if (isBoardFull()) {
+                document.getElementById('message').innerText = 'It\'s a draw!';
+                document.getElementById('popup').style.display = 'block'; // Show the popup
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            }
         }
     }
-}
 
+    function closePopup() {
+        document.getElementById('popup').style.display = 'none';
+    }
 
-
-        function closePopup() {
-            document.getElementById('popup').style.display = 'none';
+    function renderBoard() {
+        const cells = document.getElementsByClassName('cell');
+        for (let i = 0; i < cells.length; i++) {
+            cells[i].innerText = board[i];
         }
+    }
 
-        function renderBoard() {
-            const cells = document.getElementsByClassName('cell');
-            for (let i = 0; i < cells.length; i++) {
-                cells[i].innerText = board[i];
+    function checkWinner() {
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+        for (let condition of winningConditions) {
+            const [a, b, c] = condition;
+            if (board[a] !== '' && board[a] === board[b] && board[b] === board[c]) {
+                return true;
             }
         }
+        return false;
+    }
 
-        function checkWinner() {
-            const winningConditions = [
-                [0, 1, 2],
-                [3, 4, 5],
-                [6, 7, 8],
-                [0, 3, 6],
-                [1, 4, 7],
-                [2, 5, 8],
-                [0, 4, 8],
-                [2, 4, 6]
-            ];
-            for (let condition of winningConditions) {
-                const [a, b, c] = condition;
-                if (board[a] !== '' && board[a] === board[b] && board[b] === board[c]) {
-                    return true;
-                }
-            }
-            return false;
-        }
+    function isBoardFull() {
+        return board.every(cell => cell !== '');
+    }
 
-        function isBoardFull() {
-            return board.every(cell => cell !== '');
-        }
+    function resetGame() {
+        board = ['', '', '', '', '', '', '', '', ''];
+        currentPlayer = 'X';
+        document.getElementById('message').innerText = '';
+        renderBoard();
+        changeBoardColor(); // Change board color
+        changeCellColors(); // Change cell colors
+        resetWinnerBox(); // Reset winner box
+        document.getElementById('popup').style.display = 'none'; // Hide the popup
+    }
 
-        function resetGame() {
-            board = ['', '', '', '', '', '', '', '', ''];
-            currentPlayer = 'X';
-            document.getElementById('message').innerText = '';
-            renderBoard();
-            changeBoardColor(); // Change board color
-            changeCellColors(); // Change cell colors
-            document.getElementById('popup').style.display = 'none'; // Hide the popup
-        }
+    function changeBoardColor() {
+        const boardElement = document.getElementById('board');
+        boardElement.style.backgroundColor = getRandomColor();
+    }
 
-        function changeBoardColor() {
-            const boardElement = document.getElementById('board');
-            boardElement.style.backgroundColor = getRandomColor();
-        }
+    function changeCellColor(index) {
+        const cell = document.getElementsByClassName('cell')[index];
+        cell.style.backgroundColor = currentPlayer === 'X' ? 'green' : 'red'; // Change color based on currentPlayer
+    }
 
-        function changeCellColor(index) {
-            const cell = document.getElementsByClassName('cell')[index];
-            cell.style.backgroundColor = getRandomColor(); // Change color of the clicked cell
+    function changeCellColors() {
+        const cells = document.getElementsByClassName('cell');
+        for (let i = 0; i < cells.length; i++) {
+            cells[i].style.backgroundColor = getRandomColor(); // Change color of each cell
         }
+    }
 
-        function changeCellColors() {
-            const cells = document.getElementsByClassName('cell');
-            for (let i = 0; i < cells.length; i++) {
-                cells[i].style.backgroundColor = getRandomColor(); // Change color of each cell
-            }
-        }
+    function showWinner(winner) {
+        const winnerBox = document.getElementById('winnerBox');
+        winnerBox.innerText = winner === 'X' ? 'X wins!' : 'O wins!';
+        winnerBox.style.backgroundColor = winner === 'X' ? 'green' : 'red';
+        winnerBox.style.display = 'block';
+    }
 
-        function getRandomColor() {
-            return cellColors[Math.floor(Math.random() * cellColors.length)];
-        }
-    </script>
+    function resetWinnerBox() {
+        const winnerBox = document.getElementById('winnerBox');
+        winnerBox.innerText = '';
+        winnerBox.style.backgroundColor = '';
+        winnerBox.style.display = 'none';
+    }
+
+    function getRandomColor() {
+        return cellColors[Math.floor(Math.random() * cellColors.length)];
+    }
+</script>
 </body>
 </html>
